@@ -18,39 +18,71 @@
 #include "Tables\WorldSafeLocs.h"
 
 Database GameDb;
+const std::string CONNECTION_FILE = "config.ini";
 
-std::string MakeConnectionString()
-{
+std::string MakeConnectionString() {
     std::string mysql_host;
     std::string mysql_port;
     std::string mysql_user;
-    std::string mysql_pass;
+    std::string mysql_pass; // Password is not saved to file
     std::string mysql_db;
 
-    printf("Host: ");
-    getline(std::cin, mysql_host);
-    if (mysql_host.empty())
-        mysql_host = "127.0.0.1";
+    std::ifstream inputFile(CONNECTION_FILE);
 
-    printf("Port: ");
-    getline(std::cin, mysql_port);
-    if (mysql_port.empty())
-        mysql_port = "3306";
+    // Attempt to load from file (excluding password)
+    if (inputFile.is_open()) {
+        if (std::getline(inputFile, mysql_host, ';') &&
+            std::getline(inputFile, mysql_port, ';') &&
+            std::getline(inputFile, mysql_user, ';') &&
+            std::getline(inputFile, mysql_pass, ';') &&
+            std::getline(inputFile, mysql_db, ';')) {
+            inputFile.close();
+            std::cout << "Loaded connection details from " << CONNECTION_FILE << std::endl;
+        }
+        else {
+            std::cerr << "Error reading connection details from " << CONNECTION_FILE << std::endl;
+            mysql_host.clear();
+        }
+    }
 
-    printf("User: ");
-    getline(std::cin, mysql_user);
-    if (mysql_user.empty())
-        mysql_user = "root";
+    // Prompt user if loading failed (or file doesn't exist)
+    if (mysql_host.empty()) {
+        std::cout << "Host: ";
+        std::getline(std::cin, mysql_host);
+        if (mysql_host.empty())
+            mysql_host = "127.0.0.1";
 
-    printf("Password: ");
-    getline(std::cin, mysql_pass);
-    if (mysql_pass.empty())
-        mysql_pass = "root";
+        std::cout << "Port: ";
+        std::getline(std::cin, mysql_port);
+        if (mysql_port.empty())
+            mysql_port = "3306";
 
-    printf("Database: ");
-    getline(std::cin, mysql_db);
-    if (mysql_db.empty())
-        mysql_db = "mangos";
+        std::cout << "User: ";
+        std::getline(std::cin, mysql_user);
+        if (mysql_user.empty())
+            mysql_user = "root";
+
+        std::cout << "Password: ";
+        std::getline(std::cin, mysql_pass);
+        if (mysql_pass.empty())
+            mysql_pass = "root";
+
+        std::cout << "Database: ";
+        std::getline(std::cin, mysql_db);
+        if (mysql_db.empty())
+            mysql_db = "mangos";
+
+        // Save to file (excluding password)
+        std::ofstream outputFile(CONNECTION_FILE);
+        if (outputFile.is_open()) {
+            outputFile << mysql_host << ";" << mysql_port << ";" << mysql_user << ";" <<  mysql_pass << ";" << mysql_db << ";";
+            outputFile.close();
+            std::cout << "Saved connection details to " << CONNECTION_FILE << std::endl;
+        }
+        else {
+            std::cerr << "Error saving connection details to " << CONNECTION_FILE << std::endl;
+        }
+    }
 
     return mysql_host + ";" + mysql_port + ";" + mysql_user + ";" + mysql_pass + ";" + mysql_db;
 }
