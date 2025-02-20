@@ -24,12 +24,12 @@ std::string MakeConnectionString() {
     std::string mysql_host;
     std::string mysql_port;
     std::string mysql_user;
-    std::string mysql_pass; // Password is not saved to file
+    std::string mysql_pass;
     std::string mysql_db;
 
     std::ifstream inputFile(CONNECTION_FILE);
 
-    // Attempt to load from file (excluding password)
+    // Attempt to load from file
     if (inputFile.is_open()) {
         if (std::getline(inputFile, mysql_host, ';') &&
             std::getline(inputFile, mysql_port, ';') &&
@@ -72,7 +72,7 @@ std::string MakeConnectionString() {
         if (mysql_db.empty())
             mysql_db = "mangos";
 
-        // Save to file (excluding password)
+        // Save to file
         std::ofstream outputFile(CONNECTION_FILE);
         if (outputFile.is_open()) {
             outputFile << mysql_host << ";" << mysql_port << ";" << mysql_user << ";" <<  mysql_pass << ";" << mysql_db << ";";
